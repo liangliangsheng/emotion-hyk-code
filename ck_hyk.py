@@ -17,7 +17,7 @@ parser.add_argument('-lr', '--learning_rate', default=1e-2, type=float, help='in
 parser.add_argument('-f', '--fold', default=10, type=int, help='which fold used for ck+ test')
 parser.add_argument('-aggr', '--aggregate_mode', default='last', type=str, choices=('last', 'average', 'max'))
 parser.add_argument('-re', '--resume', type=str, default=True)
-parser.add_argument('-b', '--batch_train', type=int, default=8, )
+parser.add_argument('-b', '--batch_train', type=int, default=16, )
 parser.add_argument('-w', '--num_workers', type=int, default=8, )
 parser.add_argument('-s', '--save_suffix', type=str, default='test', help='save model file name suffix')
 args = parser.parse_args()
@@ -52,12 +52,41 @@ def main():
     batch_train = args.batch_train
     batch_eval = 64
     num_workers = args.num_workers
-    train_loader, val_loader = load.ck_faces_hyk(video_root, video_list, points_name, 10, num_workers, batch_train,
-                                                 batch_eval)
-    for epoch in range(current_epoch, args.epochs):
-        train(train_loader, model, optimizer, epoch, logger, optimizer.param_groups[0]['lr'])
-        acc_frame, acc_video = val(val_loader, model, epoch, logger)
+    train_loader_set = []
+    val_loader_set = []
+    for i in range(1, args.fold + 1):
+        train_loader, val_loader = load.ck_faces_hyk(video_root, video_list, points_name, i, num_workers, batch_train,
+                                                     batch_eval)
+        train_loader_set.append(train_loader)
+        val_loader_set.append(val_loader)
 
+    for epoch in range(current_epoch, args.epochs):
+        logger.print(
+            '---------------------- epoch:{} train begin learning_rate:{} '
+            '--------------------------'.format(epoch, optimizer.param_groups[0]['lr']))
+
+        acc_video_sum = 0
+        acc_video_count = 0
+        acc_frame_sum = 0
+        acc_frame_count = 0
+
+        for i in range(1, args.fold + 1):
+            logger.print('>>> fold{} begin <<<'.format(i))
+            train_loader = train_loader_set[i - 1]
+            val_loader = val_loader_set[i - 1]
+            train(train_loader, model, optimizer, epoch, logger, i)
+            acc_frame, true_video, video_length = val(val_loader, model, epoch, logger, i)
+
+            acc_video_sum += true_video
+            acc_video_count += video_length
+            acc_frame_sum += acc_frame.sum
+            acc_frame_count += acc_frame.count
+            logger.print('>>> fold{} end <<<'.format(i))
+
+        acc_video = acc_video_sum / float(acc_video_count)
+        acc_frame = acc_frame_sum / float(acc_frame_count)
+
+        logger.print('epoch:{}\ttotal_acc_video:{}\ttotal_acc_frame{}'.format(epoch, acc_video, acc_frame))
         if acc_video > best_acc_video:
             logger.print('better acc video')
             util.save_checkpoint({
@@ -67,15 +96,12 @@ def main():
                 'accuracy_video': acc_video,
             }, save_path=save_path)
             best_acc_video = acc_video
+        logger.print('---------------------- epoch{} end --------------------------'.format(epoch))
 
-        lr_scheduler.step()
+    lr_scheduler.step()
 
 
-def train(train_loader, model, optimizer, epoch, logger, learning_rate):
-    logger.print(
-        '---------------------- epoch:{} train begin learning_rate:{} --------------------------'.format(epoch,
-                                                                                                         learning_rate))
-
+def train(train_loader, model, optimizer, epoch, logger, fold):
     losses = util.AverageMeter()
     top_frame = util.AverageMeter()
 
@@ -111,10 +137,10 @@ def train(train_loader, model, optimizer, epoch, logger, learning_rate):
         # 每200个batch 记录损失和帧正确率
         if i % 200 == 0:
             logger.print(
-                '[{}] batch:[{}/{}]\t'
-                'Loss:{loss.val:.4f}({loss.avg:.4f})\t'
+                'epoch:[{}] fold:[{}] batch:[{}/{}]\t'
+                'Loss:{loss.val:.4f}({loss.avg:.4f})\t\t'
                 'Frame:{top_frame.val:.3f}({top_frame.avg:.3f})\t'.format(
-                    epoch, i, len(train_loader), loss=losses, top_frame=top_frame))
+                    epoch, fold, i, len(train_loader), loss=losses, top_frame=top_frame))
 
         true_label.to(DEVICE_CPU)
         input_var.to(DEVICE_CPU)
@@ -135,16 +161,14 @@ def train(train_loader, model, optimizer, epoch, logger, learning_rate):
                 true_num += 1
     top_video = true_num / length.float()
 
-    logger.print('[{}] train finish\t'
-                 'Loss:{loss.avg:.4f}\t'
-                 'Frame:{top_frame.avg:.3f}\t'
-                 'Video:{top_video:.3f}\t'.format(
-        epoch, loss=losses, top_frame=top_frame, top_video=top_video))
+    logger.print('epoch:[{}] fold:[{}] train finish\t'
+                 'Loss:{loss.avg:.4f}\t\t'
+                 'Frame:{top_frame.avg:.3f}\t\t'
+                 'Video:{top_video:.3f}\t\t'.format(
+        epoch, fold, loss=losses, top_frame=top_frame, top_video=top_video))
 
 
-def val(val_loader, model, epoch, logger):
-    logger.print('---------------------- epoch{epoch} val begin --------------------------'.format(epoch=epoch))
-
+def val(val_loader, model, epoch, logger, fold):
     losses = util.AverageMeter()
     top_frame = util.AverageMeter()
     model.eval()
@@ -190,62 +214,13 @@ def val(val_loader, model, epoch, logger):
                 true_num += 1
         top_video = true_num / length.float()
 
-        logger.print('[{}] val finish\t'
-                     'Loss:{loss.avg:.4f}\t'
-                     'Frame:{top_frame.avg:.3f}\t'
-                     'Video:{top_video:.3f}\t'.format(
-            epoch, loss=losses, top_frame=top_frame, top_video=top_video))
+        logger.print('epoch:[{}] fold:[{}] val finish\t'
+                     'Loss:{loss.avg:.4f}\t\t'
+                     'Frame:{top_frame.avg:.3f}\t\t'
+                     'Video:{top_video:.3f}\t\t'.format(
+            epoch, fold, loss=losses, top_frame=top_frame, top_video=top_video))
 
-    return top_frame.avg, top_video
-
-
-# top_video = util.AverageMeter()
-#
-#     # switch to evaluate mode
-#     model.eval()
-#     output_store_fc = []
-#     output_alpha = []
-#     target_store = []
-#     index_vector = []
-#     with torch.no_grad():
-#         for i, (input_var, target, video_index) in enumerate(val_loader):
-#             # compute output
-#             target = target.to(DEVICE_CUDA)
-#             input_var = input_var.to(DEVICE_CUDA)
-#             ''' model & full_model'''
-#             f, alphas = model(input_var, phrase='eval')
-#
-#             output_store_fc.append(f)
-#             output_alpha.append(alphas)
-#             target_store.append(target)
-#             index_vector.append(video_index)
-#
-#         index_vector = torch.cat(index_vector, dim=0)  # [256] ... [256]  --->  [21570]
-#         index_matrix = []
-#         for i in range(int(max(index_vector)) + 1):
-#             index_matrix.append(index_vector == i)
-#
-#         index_matrix = torch.stack(index_matrix, dim=0).to(DEVICE_CUDA).float()  # [21570]  --->  [380, 21570]
-#         output_store_fc = torch.cat(output_store_fc, dim=0)  # [256,7] ... [256,7]  --->  [21570, 7]
-#         output_alpha = torch.cat(output_alpha, dim=0)  # [256,1] ... [256,1]  --->  [21570, 1]
-#         target_store = torch.cat(target_store, dim=0).float()  # [256] ... [256]  --->  [21570]
-#         ''' keywords: mean_fc ; weight_sourcefc; sum_alpha; weightmean_sourcefc '''
-#         weight_sourcefc = output_store_fc.mul(output_alpha)  # [21570,512] * [21570,1] --->[21570,512]
-#         sum_alpha = index_matrix.mm(output_alpha)  # [380,21570] * [21570,1] -> [380,1]
-#         weightmean_sourcefc = index_matrix.mm(weight_sourcefc).div(sum_alpha)
-#         target_vector = index_matrix.mm(target_store.unsqueeze(1)).squeeze(1).div(
-#             index_matrix.sum(1)).long()  # [380,21570] * [21570,1] -> [380,1] / sum([21570,1]) -> [380]
-#         if at_type == 'self-attention':
-#             pred_score = model(vm=weightmean_sourcefc, phrase='eval', AT_level='pred')
-#         if at_type == 'self_relation-attention':
-#             pred_score = model(vectors=output_store_fc, vm=weightmean_sourcefc, alphas_from1=output_alpha,
-#                                index_matrix=index_matrix, phrase='eval', AT_level='second_level')
-#
-#         acc_video = util.accuracy(pred_score.cpu(), target_vector.cpu(), topk=(1,))
-#         top_video.update(acc_video[0], i + 1)
-#         logger.print(' *Acc@Video {top_video.avg:.3f} '.format(top_video=top_video))
-#
-#         return top_video.avg
+    return top_frame, true_num, length
 
 
 if __name__ == '__main__':
