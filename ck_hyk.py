@@ -34,7 +34,7 @@ def main():
     # 加载checkpoint
     save_path = './model/ck_hyk_' + args.aggregate_mode + '_' + args.save_suffix + '.pth.tar'
     model = networks.resnet18_at(aggregate_mode=args.aggregate_mode, patch_size=args.patch_size)
-    best_acc_video = 0
+    best_acc_frame = 0
     current_epoch = 0
     if args.resume:
         current_epoch, best_acc_video, model = util.load_model(model, save_path, True)
@@ -91,7 +91,7 @@ def main():
         acc_frame = acc_frame_sum / float(acc_frame_count)
 
         logger.print('epoch:{}\ttotal_acc_video:{}\ttotal_acc_frame{}'.format(epoch, acc_video, acc_frame))
-        if acc_video > best_acc_video:
+        if acc_frame > best_acc_frame:
             logger.print('better acc video')
             util.save_checkpoint({
                 'epoch': epoch + 1,
@@ -99,7 +99,7 @@ def main():
                 'accuracy_frame': acc_frame,
                 'accuracy_video': acc_video,
             }, save_path=save_path)
-            best_acc_video = acc_video
+            best_acc_frame = acc_frame
         logger.print('---------------------- epoch{} end --------------------------'.format(epoch))
 
     lr_scheduler.step()
@@ -138,8 +138,8 @@ def train(train_loader, model, optimizer, epoch, logger, fold):
         true_label_list.append(true_label)
         video_index_list.append(video_index)
 
-        # 每200个batch 记录损失和帧正确率
-        if i % 200 == 0:
+        # 每10个batch 记录损失和帧正确率
+        if i % 10 == 0:
             logger.print(
                 'epoch:[{}] fold:[{}] batch:[{}/{}]\t'
                 'Loss:{loss.val:.4f}({loss.avg:.4f})\t\t'

@@ -288,6 +288,15 @@ def load_ck_hyk_imgs(video_root, video_list, points_name, rectify_label, fold, r
                     new_imf.append(imf[j])
                 break
 
+    if run_type == 'all':
+        fold_ = list(range(1, 11))
+        for i in fold_:
+            fold_str = str(i) + '-fold'  # 1-fold
+            for index, item in enumerate(imf):
+                if fold_str in item:  # 1-fold in '1-fold\t31\n'
+                    for j in range(index + 1, index + int(item.split()[1]) + 1):  # (0 + 1, 0 + 31 + 1 )
+                        new_imf.append(imf[j])  # imf[2] = 'S042/006 Happy\n'
+
     # 测试时加快
     if mode == 'test':
         new_imf = new_imf[0:8]
@@ -323,6 +332,7 @@ def load_ck_hyk_imgs(video_root, video_list, points_name, rectify_label, fold, r
                 points.append([int(item) for item in temp.split(' ')])
         # 结果
         for i in range(num_per_part):
+        # for i in range(img_count):
             # pdb.set_trace()
             random_select_first = random.randint(0, num_per_part - 1)
             random_select_second = random.randint(num_per_part, 2 * num_per_part - 1)
@@ -338,6 +348,7 @@ def load_ck_hyk_imgs(video_root, video_list, points_name, rectify_label, fold, r
             ponits_three.append(
                 [points[random_select_first], points[random_select_second], points[random_select_third]])
         index.append(np.ones(num_per_part, int) * id)  # id: 0 : 379
+        # index.append(np.ones(img_count, int) * id)  # id: 0 : 379
     index = np.concatenate(index, axis=0)
     # index = index.astype(int)
     # pdb.set_trace()

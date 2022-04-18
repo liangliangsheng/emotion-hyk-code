@@ -89,7 +89,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet18(nn.Module):
-    def __init__(self, block, layers, aggregate_mode='last', flag_global=True, patch_size=3):
+    def __init__(self, block, layers, aggregate_mode='last', patch_size=3):
         self.inplanes = 64
         self.aggregate_mode = aggregate_mode
         self.patch_size = patch_size
@@ -271,7 +271,7 @@ class ResNet18(nn.Module):
                 feature_temp = []
                 batch_temp = []
                 for i in range(landa_list.shape[0]):
-                    index = landa_list[i][0]
+                    index = landa_list[i][0].item()
                     feature_temp.append(feature_list[index][i])
                     batch_temp.append(patch_feature[index][i])
                 basic_feature = torch.stack(feature_temp, dim=0)

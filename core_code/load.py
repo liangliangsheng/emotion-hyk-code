@@ -67,6 +67,25 @@ def ck_faces_hyk(video_root, video_list, points_name, fold, num_workers, batch_t
     return train_loader, val_loader
 
 
+def ck_faces_hyk_result(video_root, video_list, points_name, num_workers, batch, ):
+    all_dataset = data_generator.TenfoldCkHykDataset(
+        video_root=video_root,
+        video_list=video_list,
+        points_name=points_name,
+        rectify_label=cate2label['CK+'],
+        transform=transforms.Compose([
+            transforms.Resize(224), transforms.ToTensor()]),
+        fold=0,
+        run_type='all',
+        mode='true'
+    )
+
+    all_loader = torch.utils.data.DataLoader(
+        all_dataset, batch_size=batch, shuffle=False, num_workers=num_workers, pin_memory=True)
+
+    return all_loader
+
+
 def afew_faces_baseline(root_train, list_train, batch_train, root_eval, list_eval, batch_eval):
     train_dataset = data_generator.VideoDataset(
         video_root=root_train,
