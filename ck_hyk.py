@@ -16,8 +16,8 @@ parser.add_argument('-e', '--epochs', default=60, type=int, help='epochs number'
 parser.add_argument('-lr', '--learning_rate', default=1e-2, type=float, help='initial learning rate')
 parser.add_argument('-f', '--fold', default=10, type=int, help='which fold used for ck+ test')
 parser.add_argument('-aggr', '--aggregate_mode', default='last', type=str, choices=('last', 'average', 'max'))
-parser.add_argument('-re', '--resume', type=str, default=True)
-parser.add_argument('-b', '--batch_train', type=int, default=8)
+parser.add_argument('-re', '--resume', type=str, default=False)
+parser.add_argument('-b', '--batch_train', type=int, default=4)
 parser.add_argument('-w', '--num_workers', type=int, default=8, )
 parser.add_argument('-s', '--save_suffix', type=str, default='test', help='save model file name suffix')
 parser.add_argument('-m', '--train_mode', type=str, default='test', choices=('test', 'true'))
@@ -33,7 +33,7 @@ def main():
                                                                                   args.learning_rate))
     # 加载checkpoint
     save_path = './model/ck_hyk_' + args.aggregate_mode + '_' + args.save_suffix + '.pth.tar'
-    model = networks.resnet18_at(aggregate_mode=args.aggregate_mode, patch_size= args.patch_size)
+    model = networks.resnet18_at(aggregate_mode=args.aggregate_mode, patch_size=args.patch_size)
     best_acc_video = 0
     current_epoch = 0
     if args.resume:

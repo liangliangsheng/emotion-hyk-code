@@ -41,6 +41,6 @@ def show(image_path, landmark_path, n):
 
 
 if __name__ == '__main__':
-    image_path = './S130_007_00000002.png'
+    image_path = './S138_004_00000009.png'
     landmark_path = './16pts.list'
     show(image_path, landmark_path, 16)

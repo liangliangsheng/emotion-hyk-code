@@ -140,6 +140,21 @@ def change68to16(path_68, path_n):
             fp.write('\n')
 
 
+def check16(path_16, patch_size=3, result="C:/Users/611/Desktop/result.txt"):
+    pts_16_list = read_file(path_16)
+    for index, line in enumerate(pts_16_list):
+        land_mark = line.strip(' ').split(' ')
+        for i in range(0, 16):
+            x = int(land_mark[i * 2])
+            y = int(land_mark[i * 2 + 1])
+            # if x < patch_size | x > 25 | y < patch_size | y > 25:
+            if y > 25:
+                print(x, y,patch_size)
+                with open(result, 'w') as fp:
+                    fp.write(path_16 + str(i))
+                    fp.write('\n')
+
+
 if __name__ == '__main__':
     path_68 = './68pts.list'
     path_n = './16pts.list'

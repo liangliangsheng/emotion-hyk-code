@@ -204,11 +204,31 @@ class ResNet18(nn.Module):
                     point_batch = point[j, :]
                     # 点数遍历
                     for k in range(0, point_len):
-                        x1 = point_batch[k * 2]
-                        y1 = point_batch[k * 2 + 1]
-                        patch_list.append(
-                            feature_batch[:, x1 - patch_size:x1 + patch_size + 1,
-                            y1 - patch_size:y1 + patch_size + 1])
+                        x1 = point_batch[k * 2].item()
+                        y1 = point_batch[k * 2 + 1].item()
+                        xl = x1 - patch_size
+                        xr = x1 + patch_size + 1
+                        yt = y1 - patch_size
+                        yb = y1 + patch_size + 1
+                        # 超越边界 则向另一侧移动
+                        if xl < 0:
+                            diff = 0 - xl
+                            xl = 0
+                            xr = xr + diff
+                        if yt < 0:
+                            diff = 0 - yt
+                            yt = 0
+                            yb = yb + diff
+                        if xr > 28:
+                            diff = xr - 28
+                            xr = 28
+                            xl = xl - diff
+                        if yb > 28:
+                            diff = yb - 28
+                            yb = 28
+                            yt = yt - diff
+                        patch_list.append(feature_batch[:, xl:xr, yt:yb])
+
                     # [128,5,5,point_len]
                     patch_list = torch.stack(patch_list, dim=3)
                     batch_list.append(patch_list)

@@ -4,7 +4,7 @@ import dlib
 import cv2
 import numpy as np
 from imutils import face_utils
-from data.face_alignment_code.pts68_n import change68to16
+from data.face_alignment_code.pts68_n import change68to16, check16
 
 detector = dlib.get_frontal_face_detector()
 predictor68 = dlib.shape_predictor("./lib/shape_predictor_68_face_landmarks.dat")
@@ -54,7 +54,8 @@ def face_align_cuda(frame_root_folder, face_root_folder, flag_landmark=True, fla
                 fp.write(face_landmarks_str)
                 fp.write('\n')
     # 保存26pts
-    change68to16(landmark68_path, landmark16_path)
+    # change68to16(landmark68_path, landmark16_path)
+    check16(landmark16_path)
 
 
 def face_alignment(face_file_path):
