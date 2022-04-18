@@ -37,7 +37,7 @@ def main():
     best_acc_frame = 0
     current_epoch = 0
     if args.resume:
-        current_epoch, best_acc_video, model = util.load_model(model, save_path, True)
+        current_epoch, best_acc_frame, model = util.load_model(model, save_path, True)
         logger.print('train from ck_hyk_' + args.save_suffix)
     else:
         _parameterDir = './pretrain_model/Resnet18_FER+_pytorch.pth.tar'

@@ -32,9 +32,10 @@ def load_model(model, path, resume):
     if resume:
         epoch = checkpoint['epoch']
         acc_video = checkpoint['accuracy_video']
+        acc_frame = checkpoint['accuracy_frame']
         model = torch.nn.DataParallel(model).cuda()
         model.load_state_dict(pretrained_state_dict)
-        return epoch, acc_video, model
+        return epoch, acc_frame, model
     else:
         model_state_dict = model.state_dict()
         for key in pretrained_state_dict:

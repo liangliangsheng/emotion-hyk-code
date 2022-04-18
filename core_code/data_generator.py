@@ -1,9 +1,10 @@
 # coding=utf-8
+import os
 import pdb
-import os, sys, random
+import random
+
 import numpy as np
 import torch
-import torch.nn.functional as F
 import torch.utils.data as data
 from PIL import Image
 
@@ -203,7 +204,6 @@ def load_ck_baseline_imgs(video_root, video_list, rectify_label, fold, run_type)
         except:
             pdb.set_trace()
         video_path = os.path.join(video_root, video_name)  # video_path is the path of each video
-        ###  for sampling triple imgs in the single video_path  ####
         img_lists = os.listdir(video_path)
         img_lists.sort()  # sort files by ascending
 
@@ -212,7 +212,6 @@ def load_ck_baseline_imgs(video_root, video_list, rectify_label, fold, run_type)
         img_count = len(img_lists)  # number of frames in video
         for frame in img_lists:
             imgs_first.append((os.path.join(video_path, frame), label))
-        ###  return video frame index  #####
         index.append(np.ones(img_count) * id)
 
     index = np.concatenate(index, axis=0)
@@ -332,7 +331,7 @@ def load_ck_hyk_imgs(video_root, video_list, points_name, rectify_label, fold, r
                 points.append([int(item) for item in temp.split(' ')])
         # 结果
         for i in range(num_per_part):
-        # for i in range(img_count):
+            # for i in range(img_count):
             # pdb.set_trace()
             random_select_first = random.randint(0, num_per_part - 1)
             random_select_second = random.randint(num_per_part, 2 * num_per_part - 1)
