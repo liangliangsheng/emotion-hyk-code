@@ -224,14 +224,15 @@ def load_ck_baseline_imgs(video_root, video_list, rectify_label, fold, run_type)
 
 class TenfoldCkHykDataset(data.Dataset):
     def __init__(self, video_root='', video_list='', points_name='', rectify_label=None, transform=None, fold=1,
-                 run_type='train'):
+                 run_type='train', mode='test'):
 
         self.imgs_first, self.imgs_second, self.imgs_third, self.ponits_three, self.index = load_ck_hyk_imgs(video_root,
                                                                                                              video_list,
                                                                                                              points_name,
                                                                                                              rectify_label,
                                                                                                              fold,
-                                                                                                             run_type)
+                                                                                                             run_type,
+                                                                                                             mode)
 
         self.transform = transform
         self.video_root = video_root
@@ -259,7 +260,7 @@ class TenfoldCkHykDataset(data.Dataset):
         return len(self.imgs_first)
 
 
-def load_ck_hyk_imgs(video_root, video_list, points_name, rectify_label, fold, run_type):
+def load_ck_hyk_imgs(video_root, video_list, points_name, rectify_label, fold, run_type, mode):
     imgs_first = list()
     imgs_second = list()
     imgs_third = list()
@@ -288,7 +289,8 @@ def load_ck_hyk_imgs(video_root, video_list, points_name, rectify_label, fold, r
                 break
 
     # 测试时加快
-    new_imf = new_imf[0:8]
+    if mode == 'test':
+        new_imf = new_imf[0:8]
 
     ''' Make triple-image list '''
     index = []

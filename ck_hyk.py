@@ -20,6 +20,7 @@ parser.add_argument('-re', '--resume', type=str, default=True)
 parser.add_argument('-b', '--batch_train', type=int, default=16, )
 parser.add_argument('-w', '--num_workers', type=int, default=8, )
 parser.add_argument('-s', '--save_suffix', type=str, default='test', help='save model file name suffix')
+parser.add_argument('-m', '--train_mode', type=str, default='test', choices=('test', 'true'))
 args = parser.parse_args()
 
 
@@ -56,7 +57,7 @@ def main():
     val_loader_set = []
     for i in range(1, args.fold + 1):
         train_loader, val_loader = load.ck_faces_hyk(video_root, video_list, points_name, i, num_workers, batch_train,
-                                                     batch_eval)
+                                                     batch_eval, args.train_mode)
         train_loader_set.append(train_loader)
         val_loader_set.append(val_loader)
 

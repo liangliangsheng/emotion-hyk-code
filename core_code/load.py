@@ -37,7 +37,7 @@ def ck_faces_baseline(video_root, video_list, fold, batch_train, batch_eval):
     return train_loader, val_loader
 
 
-def ck_faces_hyk(video_root, video_list, points_name, fold, num_workers, batch_train, batch_eval):
+def ck_faces_hyk(video_root, video_list, points_name, fold, num_workers, batch_train, batch_eval, mode):
     train_dataset = data_generator.TenfoldCkHykDataset(
         video_root=video_root,
         video_list=video_list,
@@ -47,6 +47,7 @@ def ck_faces_hyk(video_root, video_list, points_name, fold, num_workers, batch_t
             transforms.Resize(224), transforms.ToTensor()]),
         fold=fold,
         run_type='train',
+        mode=mode
     )
 
     val_dataset = data_generator.TenfoldCkHykDataset(
@@ -56,7 +57,8 @@ def ck_faces_hyk(video_root, video_list, points_name, fold, num_workers, batch_t
         rectify_label=cate2label['CK+'],
         transform=transforms.Compose([transforms.Resize(224), transforms.ToTensor()]),
         fold=fold,
-        run_type='test'
+        run_type='test',
+        mode=mode
     )
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=batch_train, shuffle=True, num_workers=num_workers, pin_memory=True)
@@ -120,5 +122,3 @@ def afew_faces_fan(root_train, list_train, batch_train, root_eval, list_eval, ba
         num_workers=8, pin_memory=True)
 
     return train_loader, val_loader
-
-
