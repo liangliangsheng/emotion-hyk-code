@@ -17,20 +17,23 @@ parser.add_argument('-lr', '--learning_rate', default=1e-2, type=float, help='in
 parser.add_argument('-f', '--fold', default=10, type=int, help='which fold used for ck+ test')
 parser.add_argument('-aggr', '--aggregate_mode', default='last', type=str, choices=('last', 'average', 'max'))
 parser.add_argument('-re', '--resume', type=str, default=True)
-parser.add_argument('-b', '--batch_train', type=int, default=16, )
+parser.add_argument('-b', '--batch_train', type=int, default=8)
 parser.add_argument('-w', '--num_workers', type=int, default=8, )
 parser.add_argument('-s', '--save_suffix', type=str, default='test', help='save model file name suffix')
 parser.add_argument('-m', '--train_mode', type=str, default='test', choices=('test', 'true'))
+parser.add_argument('-p', '--patch_size', type=int, default=3)
 args = parser.parse_args()
 
 
 def main():
     start_date = util.time_now()
     logger = util.Logger('./log/', 'ck_hyk', start_date, args.aggregate_mode)
-    logger.print('The aggregate mode is {:}, learning rate: {:}'.format(args.aggregate_mode, args.learning_rate))
+    logger.print(
+        'The aggregate mode is {:}, patch size is {:} ,learning rate: {:}'.format(args.aggregate_mode, args.patch_size,
+                                                                                  args.learning_rate))
     # 加载checkpoint
-    save_path = './model/ck_hyk_' + args.aggregate_mode + '_' + args.save_suffix
-    model = networks.resnet18_at(aggregate_mode=args.aggregate_mode)
+    save_path = './model/ck_hyk_' + args.aggregate_mode + '_' + args.save_suffix + '.pth.tar'
+    model = networks.resnet18_at(aggregate_mode=args.aggregate_mode, patch_size= args.patch_size)
     best_acc_video = 0
     current_epoch = 0
     if args.resume:

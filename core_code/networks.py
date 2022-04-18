@@ -89,7 +89,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet18(nn.Module):
-    def __init__(self, block, layers, aggregate_mode='last', flag_global=True, patch_size=2):
+    def __init__(self, block, layers, aggregate_mode='last', flag_global=True, patch_size=3):
         self.inplanes = 64
         self.aggregate_mode = aggregate_mode
         self.patch_size = patch_size

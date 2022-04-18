@@ -59,7 +59,7 @@ def frame2face(frame_root_folder, face_root_folder):
     #     func_path, predictor_path, image_root_folder, save_root_folder, cnn_face_detector, gpu_id)
     # print('{:}'.format(image_root_folder))
     # subprocess.getstatusoutput(linux_command)
-    face_align_cuda(frame_root_folder, face_root_folder,  flag_landmark=False, flag_align=False)
+    face_align_cuda(frame_root_folder, face_root_folder, flag_landmark=True, flag_align=True)
 
 
 if __name__ == '__main__':
