@@ -29,16 +29,18 @@ def face_align_cuda(frame_root_folder, face_root_folder, flag_landmark=True, fla
                 # 人脸对齐
                 if flag_align:
                     face = face_alignment(img_path)
+
                     if face is not None:
                         if not os.path.exists(os.path.dirname(save_path)):
                             os.makedirs(os.path.dirname(save_path))
                         cv2.imwrite(save_path, face)
-
                 # landmark
                 if flag_landmark:
                     image = cv2.imread(save_path)
-                    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                    faces = detector(gray)
+                    gray = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    faces = detector(gray, 1)
+                    # if len(faces) == 0:
+                    #     print(1)
                     for face in faces:
                         face_landmarks = predictor68(gray, face)
                         face_landmarks = face_utils.shape_to_np(face_landmarks).flatten().tolist()
@@ -54,8 +56,8 @@ def face_align_cuda(frame_root_folder, face_root_folder, flag_landmark=True, fla
                 fp.write(face_landmarks_str)
                 fp.write('\n')
     # 保存26pts
-    # change68to16(landmark68_path, landmark16_path)
-    check16(landmark16_path)
+    change68to16(landmark68_path, landmark16_path)
+    # check16(landmark16_path)
 
 
 def face_alignment(face_file_path):
@@ -95,11 +97,10 @@ def face_alignment(face_file_path):
     faces = dlib.full_object_detections()
 
     for detection in dets:
-        faces.append(predictor5(img, detection))
+        faces.append(predictor68(img, detection))
     image = dlib.get_face_chip(img, faces[0], size=224, padding=0.25)
-    cv_bgr_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-    return cv_bgr_img
+    return image
 
 
 def claheColor(img):

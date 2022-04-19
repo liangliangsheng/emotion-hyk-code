@@ -72,7 +72,6 @@ def load_imgs_tsn(video_root, video_list, rectify_label):
             label = rectify_label[video_label[1]]  # label of video
 
             video_path = os.path.join(video_root, video_name)  # video_path is the path of each video
-            ###  for sampling triple imgs in the single video_path  ####
 
             img_lists = os.listdir(video_path)
             img_lists.sort()  # sort files by ascending

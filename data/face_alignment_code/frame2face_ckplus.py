@@ -1,13 +1,13 @@
 #  coding:utf-8
 import os
 import threading
-from data.face_alignment_code.face_align_cuda import face_align_cuda
+from data.face_alignment_code.face_align_cuda_afew import face_align_cuda
 
 
 def main(frame_dir, face_dir, n_thread):
     threads = []
     # function
-    func_path = 'face_align_cuda.py'
+    func_path = 'face_align_cuda_afew.py'
     # Model
     for category in os.listdir(frame_dir):
         category_dir = os.path.join(frame_dir, category)
