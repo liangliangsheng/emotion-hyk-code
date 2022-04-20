@@ -24,6 +24,7 @@ def show(dir_path, width):
         key = cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+
 if __name__ == '__main__':
     path = '../data/face/train_afew/Angry/000223480'
     show(path, 10)

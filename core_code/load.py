@@ -114,7 +114,7 @@ def afew_faces_baseline(root_train, list_train, batch_train, root_eval, list_eva
     return train_loader, val_loader
 
 
-def afew_faces_fan(root_train, list_train, batch_train, root_eval, list_eval, batch_eval):
+def afew_faces_hyk(root_train, list_train, points_name, num_workers, batch_train, root_eval, list_eval, batch_eval):
     train_dataset = data_generator.TripleImageDataset(
         video_root=root_train,
         video_list=list_train,
